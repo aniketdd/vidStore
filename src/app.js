@@ -1,16 +1,15 @@
 // var path = require("path");
 import createError from 'http-errors';
-import logger from 'morgan';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import * as expressValidation from 'express-validation';
 
+import { logger } from './utils';
 import indexRouter from './routes';
 
 const app = express();
 
-app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -43,7 +42,8 @@ app.use((err, req, res, next) => {
         '',
       ),)
       .join('');
-    return res.status(403).json({ errorCode: 'InputValidationError' });
+    logger.error(errorMessage);
+    return res.status(400).json({ errorCode: 'InputValidationError' });
   }
 
   // render the error page
