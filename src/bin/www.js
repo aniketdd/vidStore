@@ -9,6 +9,7 @@ import debug from 'debug';
 import http from 'http';
 import app from '../app';
 import models from '../data/models';
+import settings from '../config';
 /**
  * Normalize a port into a number, string, or false.
  */
@@ -68,7 +69,7 @@ const onListening = () => {
 /**
  * Listen on provided port, on all network interfaces.
  */
-models.sequelize.sync({ force: false }).then(() => {
+models.sequelize.sync({ force: settings.nodeEnvironment !== 'production' }).then(() => {
   server.listen(port);
   server.on('error', onError);
   server.on('listening', onListening);

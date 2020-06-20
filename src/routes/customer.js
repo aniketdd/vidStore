@@ -6,12 +6,10 @@ import {
 
 import {
   getBonuspoints,
-  addCustomer
 } from '../controllers/customer-controller';
 
 const router = express.Router();
 
 router.get('/:username', validate(getBonuspointsSchema), getBonuspoints);
-router.post('/', addCustomer);
 
 module.exports = router;
