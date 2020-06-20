@@ -13,15 +13,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(helmet({
-  hsts: true,
-  ieNoOpen: true,
-  noCache: true,
-  noSniff: true,
-  permittedCrossDomainPolicies: true,
-  referrerPolicy: { policy: 'strict-origin' },
-  xssFilter: true,
-}));
+app.use(helmet());
 
 app.use('/v1', indexRouter);
 

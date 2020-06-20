@@ -18,7 +18,7 @@ const getNumberOfDaysToPayFor = (totalPoints, useBonuspoints, numOfDays) => {
       paidByBonusPointsDays: numOfDaysPayableByBonuspoints,
       paidByCurrencyDays: numOfDays - numOfDaysPayableByBonuspoints,
       pointsUsed: numOfDaysPayableByBonuspoints * 25,
-      pointsRemaining: totalPoints - (numOfDays * 25)
+      pointsRemaining: totalPoints - (numOfDaysPayableByBonuspoints * 25)
     };
   }
   return {
@@ -68,10 +68,7 @@ const processOrder = async ({
     }, { transaction: t }).then((bonuspointRecord) => {
       logger.info('Bonuspoint redeemed for new rental', bonuspointRecord);
       return order;
-    }) : order))).then(result => {
-    logger.info('Transaction completed');
-    return result;
-  }).catch(error => {
+    }) : order))).then(result => result).catch(error => {
     logger.error('error in order processing', { error });
     throw new DatabaseError('Order failed');
   });
@@ -94,7 +91,6 @@ export const placeOrder = async (req, res) => {
       logger.error('Db error in getPrice', { error });
       throw new DatabaseError('Db operation failed');
     });
-    logger.info('customers ===>', customers);
     let customer;
     if (customers.length < 1) {
       customer = await Customer.create({ username }).catch(error => {
@@ -115,7 +111,6 @@ export const placeOrder = async (req, res) => {
       logger.error('Db error in getting Film', { error });
       throw new DatabaseError('Db operation failed');
     });
-    logger.info('film ===>', film);
     if (!film) {
       return res.status(404).json({});
     }
@@ -130,23 +125,20 @@ export const placeOrder = async (req, res) => {
       pointsUsed,
       pointsRemaining
     } = getNumberOfDaysToPayFor(totalPoints, useBonuspoints, numOfDays);
-    logger.info('getNumberOfDaysToPayFor ===>', paidByCurrencyDays, pointsUsed, pointsRemaining);
 
     const amountActuallyPaid = paidByCurrencyDays > 0
       ? priceCalculator.calculatePrice(paidByCurrencyDays) : 0;
 
-    logger.info('amountActuallyPaid ===>', amountActuallyPaid);
     const processedOrder = await processOrder({
       numOfDays, amountActuallyPaid, bonuspointsEarned, pointsUsed
     }, film, customer);
-    logger.info('final order ===>', processedOrder);
 
     return res.status(200).json({
       filmName: name,
       filmType: displayName,
       numOfDays,
       pointsUsed,
-      pointsRemaining: pointsRemaining + bonuspointsEarned,
+      pointsRemaining: +pointsRemaining + +bonuspointsEarned,
       orderId: processedOrder.id,
       paidAmount: processedOrder.amount
     });

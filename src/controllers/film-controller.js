@@ -82,12 +82,14 @@ export const getFilms = async (req, res) => {
       throw new DatabaseError('Db operation failed');
     });
     logger.info(result);
-    return res.status(200).json(result.map(film => ({
-      id: film.id,
-      name: film.name,
-      beenRented: film.rented,
-      type: filmTypes[film.type].displayName
-    })));
+    return res.status(200).json({
+      films: result.map(film => ({
+        id: film.id,
+        name: film.name,
+        beenRented: film.rented,
+        type: filmTypes[film.type].displayName
+      }))
+    });
   } catch (error) {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
@@ -151,7 +153,6 @@ export const getActiveRental = async (req, res) => {
         model: Order,
         as: 'orders',
         where: predicate,
-        required: false
       } ],
       where: { rented: true },
 
@@ -179,7 +180,7 @@ export const getActiveRental = async (req, res) => {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
     }
-    logger.error({ error });
+    logger.error(error);
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };

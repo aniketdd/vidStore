@@ -36,22 +36,3 @@ export const getBonuspoints = async (req, res) => {
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };
-
-export const addCustomer = async (req, res) => {
-  try {
-    const { Customer } = models;
-    const { username } = req.body;
-    const result = await Customer.create({ username }).catch(error => {
-      logger.error('Db error ', { error });
-      throw new DatabaseError('Db operation failed');
-    });
-    logger.info(result);
-    return res.status(201).json(result);
-  } catch (error) {
-    if (error instanceof DatabaseError) {
-      return res.status(500).json({ errorCode: 'DB_ERROR' });
-    }
-    logger.error({ error });
-    return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
-  }
-};

@@ -24,6 +24,6 @@ router.get('/', validate(getFilmsSchema), getFilms);
 router.patch('/:id', validate(updateFilmSchema), updateFilm);
 router.delete('/:id', validate(removeFilmSchema), removeFilm);
 router.get('/active', validate(getActiveRentalSchema), getActiveRental);
-router.get('/:id', validate(getPriceSchema), getPrice); // check for days query param
+router.get('/:id/price', validate(getPriceSchema), getPrice); // check for days query param
 
 module.exports = router;
