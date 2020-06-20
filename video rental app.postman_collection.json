@@ -65,7 +65,7 @@
 		{
 			"name": "update film",
 			"request": {
-				"method": "PUT",
+				"method": "PATCH",
 				"header": [],
 				"body": {
 					"mode": "raw",
@@ -77,14 +77,15 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:3000/v1/films",
+					"raw": "localhost:3000/v1/films/1",
 					"host": [
 						"localhost"
 					],
 					"port": "3000",
 					"path": [
 						"v1",
-						"films"
+						"films",
+						"1"
 					]
 				}
 			},
