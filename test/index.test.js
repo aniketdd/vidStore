@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import { expect, server, BASE_URL } from './setup';
 import models from '../src/data/models';
 
-describe('Index page test', function descTest() {
+describe('video store integration tests', function descTest() {
   this.timeout(35000);
   before('beforeAll', async () => {
     await models.sequelize.sync({ force: true });
@@ -40,6 +40,21 @@ describe('Index page test', function descTest() {
       });
   });
 
+  it('addFilm should fail on unknown error', (done) => {
+    sinon.stub(models, 'Film').returns(undefined);
+    server
+      .post(`${BASE_URL}/films/`)
+      .send({
+        name: 'matrix',
+        type: 'New releases'
+      })
+      .end((err, res) => {
+        expect(res.status).to.equal(500);
+        expect(res.body.errorCode).to.equal('GENERIC_ERROR');
+        done();
+      });
+  });
+
   it('should fail on invalid type', (done) => {
     server
       .post(`${BASE_URL}/films/`)
@@ -53,18 +68,6 @@ describe('Index page test', function descTest() {
       });
   });
 
-  it('should fail on short name', (done) => {
-    server
-      .post(`${BASE_URL}/films/`)
-      .send({
-        name: 'm',
-        type: 'New releases'
-      })
-      .end((err, res) => {
-        expect(res.status).to.equal(400);
-        done();
-      });
-  });
   it('should fail on short name', (done) => {
     server
       .post(`${BASE_URL}/films/`)
@@ -140,6 +143,20 @@ describe('Index page test', function descTest() {
       });
   });
 
+  it('should fail on unknown error', (done) => {
+    sinon.stub(models, 'Film').returns(undefined);
+    server
+      .patch(`${BASE_URL}/films/2`)
+      .send({
+        type: 'Old films'
+      })
+      .end((err, res) => {
+        expect(res.status).to.equal(500);
+        expect(res.body.errorCode).to.equal('GENERIC_ERROR');
+        done();
+      });
+  });
+
   it('gets film', (done) => {
     server
       .get(`${BASE_URL}/films/`)
@@ -176,6 +193,17 @@ describe('Index page test', function descTest() {
       .end((err, res) => {
         expect(res.status).to.equal(500);
         expect(res.body.errorCode).to.equal('DB_ERROR');
+        done();
+      });
+  });
+
+  it('getFilms fails for unknown error', (done) => {
+    sinon.stub(models, 'Film').returns(undefined);
+    server
+      .get(`${BASE_URL}/films?status=available`)
+      .end((err, res) => {
+        expect(res.status).to.equal(500);
+        expect(res.body.errorCode).to.equal('GENERIC_ERROR');
         done();
       });
   });
@@ -250,13 +278,24 @@ describe('Index page test', function descTest() {
       });
   });
 
-  it('fails for error in db', (done) => {
+  it('getPrice fails for error in db', (done) => {
     sinon.stub(models.Film, 'findByPk').rejects();
     server
       .get(`${BASE_URL}/films/303/price?days=5`)
       .end((error, resp) => {
         expect(resp.status).to.equal(500);
         expect(resp.body.errorCode).to.equal('DB_ERROR');
+        done();
+      });
+  });
+
+  it('getPrice fails on unknown error', (done) => {
+    sinon.stub(models, 'Film').returns(undefined);
+    server
+      .get(`${BASE_URL}/films/303/price?days=5`)
+      .end((error, resp) => {
+        expect(resp.status).to.equal(500);
+        expect(resp.body.errorCode).to.equal('GENERIC_ERROR');
         done();
       });
   });
@@ -301,6 +340,17 @@ describe('Index page test', function descTest() {
       .end((error, resp) => {
         expect(resp.status).to.equal(500);
         expect(resp.body.errorCode).to.equal('DB_ERROR');
+        done();
+      });
+  });
+
+  it('removeFilm errors on db error', (done) => {
+    sinon.stub(models, 'Film').returns(undefined);
+    server
+      .delete(`${BASE_URL}/films/1`)
+      .end((error, resp) => {
+        expect(resp.status).to.equal(500);
+        expect(resp.body.errorCode).to.equal('GENERIC_ERROR');
         done();
       });
   });
@@ -371,7 +421,7 @@ describe('Index page test', function descTest() {
     expect(orderRes.body.paidAmount).to.equal('90.00');
   });
 
-  it('should return error on db error', async () => {
+  it('placeOrder should return error on db error', async () => {
     sinon.stub(models.Film, 'findOne').rejects();
     const addFilmRes = await server
       .post(`${BASE_URL}/films/`)
@@ -390,6 +440,19 @@ describe('Index page test', function descTest() {
       });
     expect(orderRes.status).to.equal(500);
     expect(orderRes.body.errorCode).to.equal('DB_ERROR');
+  });
+
+  it('placeOrder should return error on unknown error', async () => {
+    sinon.stub(models, 'Film').returns(undefined);
+    const orderRes = await server
+      .post(`${BASE_URL}/orders/`)
+      .send({
+        username: 'coppola',
+        filmId: 2,
+        numOfDays: 5
+      });
+    expect(orderRes.status).to.equal(500);
+    expect(orderRes.body.errorCode).to.equal('GENERIC_ERROR');
   });
 
   it('should return error on film not found', async () => {
@@ -670,6 +733,15 @@ describe('Index page test', function descTest() {
       .get(`${BASE_URL}/customers/coppola`);
 
     expect(res.status).to.equal(200);
+  });
+
+  it('should send 500 status on error', async () => {
+    sinon.stub(models, 'Customer').returns(undefined);
+    const res = await server
+      .get(`${BASE_URL}/customers/coppola`);
+
+    expect(res.status).to.equal(500);
+    expect(res.body.errorCode).to.equal('GENERIC_ERROR');
   });
 
   it('should error when customer not found', async () => {

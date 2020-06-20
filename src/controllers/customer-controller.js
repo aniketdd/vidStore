@@ -11,7 +11,7 @@ export const getBonuspoints = async (req, res) => {
         username
       }
     }).catch(error => {
-      logger.error('Db error in getPrice', { error });
+      logger.error('Db error in getBonuspoints', { error });
       throw new DatabaseError('Db operation failed');
     });
     if (customers.length < 1) {
@@ -32,7 +32,7 @@ export const getBonuspoints = async (req, res) => {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
     }
-    logger.error({ error });
+    logger.error('getBonuspoints error: ', { error });
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };

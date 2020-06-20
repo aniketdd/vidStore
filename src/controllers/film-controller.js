@@ -8,7 +8,7 @@ export const addFilm = async (req, res) => {
     const { name, type } = req.body;
     const { keyName } = Object.values(filmTypes).filter((value) => value.displayName === type)[0];
     const result = await Film.create({ name, type: keyName, rented: false }).catch(error => {
-      logger.error('Db error in updateFilm', { error });
+      logger.error('Db error in addFilm', { error });
       throw new DatabaseError('Db operation failed');
     });
     const {
@@ -21,7 +21,7 @@ export const addFilm = async (req, res) => {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
     }
-    logger.error({ error });
+    logger.error('addFilm error: ', { error });
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };
@@ -44,7 +44,7 @@ export const updateFilm = async (req, res) => {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
     }
-    logger.error({ error });
+    logger.error('updateFilm error: ', { error });
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };
@@ -56,7 +56,7 @@ export const removeFilm = async (req, res) => {
     const result = await Film.destroy({
       where: { id }
     }).catch(error => {
-      logger.error('Db error in updateFilm', { error });
+      logger.error('Db error in removeFilm', { error });
       throw new DatabaseError('Db operation failed');
     });
     logger.info(result);
@@ -65,7 +65,7 @@ export const removeFilm = async (req, res) => {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
     }
-    logger.error({ error });
+    logger.error('removeFilm error: ', { error });
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };
@@ -78,7 +78,7 @@ export const getFilms = async (req, res) => {
     const result = await Film.findAll({
       where: predicate
     }).catch(error => {
-      logger.error('Db error in updateFilm', { error });
+      logger.error('Db error in getFilms', { error });
       throw new DatabaseError('Db operation failed');
     });
     logger.info(result);
@@ -94,7 +94,7 @@ export const getFilms = async (req, res) => {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
     }
-    logger.error({ error });
+    logger.error('getFilms error: ', { error });
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };
@@ -122,7 +122,7 @@ export const getPrice = async (req, res) => {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
     }
-    logger.error({ error });
+    logger.error('getPrice error: ', { error });
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };
@@ -157,7 +157,7 @@ export const getActiveRental = async (req, res) => {
       where: { rented: true },
 
     }).catch(error => {
-      logger.error('Db error in getPrice', { error });
+      logger.error('Db error in getActiveRental', { error });
       throw new DatabaseError('Db operation failed');
     });
 
@@ -180,7 +180,7 @@ export const getActiveRental = async (req, res) => {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
     }
-    logger.error(error);
+    logger.error('getActiveRental error:', { error });
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };

@@ -2,32 +2,7 @@ import moment from 'moment';
 import models from '../data/models';
 import { DatabaseError, logger } from '../utils';
 import filmTypes from '../config/film-types';
-
-const getNumberOfDaysToPayFor = (totalPoints, useBonuspoints, numOfDays) => {
-  if (useBonuspoints && totalPoints > 25) {
-    const numOfDaysPayableByBonuspoints = parseInt(totalPoints / 25, 10);
-    if (numOfDaysPayableByBonuspoints >= numOfDays) {
-      return {
-        paidByBonusPointsDays: Math.min(numOfDays, numOfDaysPayableByBonuspoints),
-        paidByCurrencyDays: 0,
-        pointsUsed: numOfDays * 25,
-        pointsRemaining: totalPoints - (numOfDays * 25)
-      };
-    }
-    return {
-      paidByBonusPointsDays: numOfDaysPayableByBonuspoints,
-      paidByCurrencyDays: numOfDays - numOfDaysPayableByBonuspoints,
-      pointsUsed: numOfDaysPayableByBonuspoints * 25,
-      pointsRemaining: totalPoints - (numOfDaysPayableByBonuspoints * 25)
-    };
-  }
-  return {
-    paidByBonusPointsDays: 0,
-    paidByCurrencyDays: numOfDays,
-    pointsUsed: 0,
-    pointsRemaining: totalPoints
-  };
-};
+import { getNumberOfDaysToPayFor } from '../services/points-calculator';
 
 const processOrder = async ({
   numOfDays, amountActuallyPaid, bonuspointsEarned, pointsUsed
@@ -44,12 +19,12 @@ const processOrder = async ({
     FilmId: film.id
   }, { transaction: t })
     .then(order => {
-      logger.info('ORDER created ===>', order);
+      logger.debug('ORDER created: ', order);
       return Film.update({ rented: true }, {
         where: { id: film.id },
         transaction: t
       }).then((updatedFilm) => {
-        logger.info('FILM updated ===>', updatedFilm);
+        logger.info('FILM updated: ', updatedFilm);
         return order;
       });
     })
@@ -58,7 +33,7 @@ const processOrder = async ({
       OrderId: order.id,
       CustomerId: customer.id
     }, { transaction: t }).then((bonuspointRecord) => {
-      logger.info('Bonuspoint added for new rental', bonuspointRecord);
+      logger.debug('Bonuspoint added for new rental: ', bonuspointRecord);
       return order;
     }))
     .then((order) => (pointsUsed > 0 ? Bonuspoint.create({
@@ -66,7 +41,7 @@ const processOrder = async ({
       OrderId: order.id,
       CustomerId: customer.id
     }, { transaction: t }).then((bonuspointRecord) => {
-      logger.info('Bonuspoint redeemed for new rental', bonuspointRecord);
+      logger.debug('Bonuspoint redeemed for new rental: ', bonuspointRecord);
       return order;
     }) : order))).then(result => result).catch(error => {
     logger.error('error in order processing', { error });
@@ -88,7 +63,7 @@ export const placeOrder = async (req, res) => {
         username
       }
     }).catch(error => {
-      logger.error('Db error in getPrice', { error });
+      logger.error('Db error in placeOrder', { error });
       throw new DatabaseError('Db operation failed');
     });
     let customer;
@@ -146,7 +121,7 @@ export const placeOrder = async (req, res) => {
     if (error instanceof DatabaseError) {
       return res.status(500).json({ errorCode: 'DB_ERROR' });
     }
-    logger.error({ error });
+    logger.error('placeOrder error: ', { error });
     return res.status(500).json({ errorCode: 'GENERIC_ERROR' });
   }
 };
