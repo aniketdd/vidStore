@@ -7,9 +7,8 @@ services:
       - postgres
     ports:
       - "3000:3000"
-    environment:
-      PORT: 3000
-      NODE_ENV: development
+    env_file:
+      - ./.env.local
 
   postgres:
     image: postgres:latest

@@ -11,6 +11,6 @@ RUN npm ci
 COPY . /home/app
 COPY .env.local /home/app/.env
 
-#RUN npm run build
+RUN npm run test
 
 CMD ./scripts/deploy.sh
